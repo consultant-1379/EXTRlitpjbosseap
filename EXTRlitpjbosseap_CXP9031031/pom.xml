@@ -1,0 +1,162 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+    <groupId>com.ericsson.nms.litp.3pps</groupId>
+	<artifactId>EXTRlitpjbosseap_CXP9031031</artifactId>
+	<packaging>rpm</packaging>
+
+	<parent>
+        <groupId>com.ericsson.nms.litp.3pps</groupId>
+		<artifactId>EXTRlitpjbosseap</artifactId>
+		<version>1.2.4-SNAPSHOT</version>
+ 	</parent>
+
+	<name>jboss-eap</name>
+	<description>Project to build EXTRlitpjbosseap_CXP9031031 rpm</description>
+
+	<properties>
+		<com.ericsson.nms.litp.skip.unpack>false</com.ericsson.nms.litp.skip.unpack>
+		<com.ericsson.nms.litp.skip.epydoc>true</com.ericsson.nms.litp.skip.epydoc>
+		<com.ericsson.nms.litp.skip.copyprod>false</com.ericsson.nms.litp.skip.copyprod>
+                <com.ericsson.nms.litp.skip.buildsdp>false</com.ericsson.nms.litp.skip.buildsdp>
+                <jboss-zip-dir>${basedir}/jboss-zip/</jboss-zip-dir>
+                <jboss-version>6.1.1</jboss-version>
+                <jboss-filename>jboss-eap-6.1.1</jboss-filename>
+                <jboss-unzip-dir>${basedir}/jboss-unzip/</jboss-unzip-dir>
+	</properties>
+
+	<build>
+            <plugins>
+                <!--
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<configuration>
+					<phase>initialize</phase>
+					<id>unpack-dependencies</id>
+					<skip>${com.ericsson.nms.litp.skip.unpack}</skip>
+				</configuration>
+                        </plugin>
+                        -->
+                        <plugin>
+                            <groupId>org.apache.maven.plugins</groupId>
+                            <artifactId>maven-dependency-plugin</artifactId>
+                            <version>2.8</version>
+                            <executions>
+                                <execution>
+                                    <id>unpack jboss</id>
+                                    <phase>generate-sources</phase>
+                                    <goals>
+                                        <goal>unpack</goal>
+                                    </goals>
+                                  <configuration>
+                                    <artifactItems>
+                                        <artifactItem>
+                                            <groupId>org.jboss.as</groupId>
+                                            <artifactId>jboss-as-dist</artifactId>
+                                            <version>${jboss-version}</version>
+                                            <type>zip</type>
+                                            <overWrite>false</overWrite>
+                                        </artifactItem>
+                                    </artifactItems>
+                                    <outputDirectory>${project.build.directory}</outputDirectory>
+                                    <overWriteReleases>false</overWriteReleases>
+                                    <overWriteSnapshots>true</overWriteSnapshots>
+                                  </configuration>
+                               </execution>
+                           </executions>
+                       </plugin>
+
+                       <!--<unzip src="${jboss-zip-dir}jboss-as-dist-6.1.1.zip" dest="${jboss-unzip-dir}" /> -->
+                       <!--<tar destfile="${jboss-unzip-dir}${jboss-filename}.tar.gz" basedir="${jboss-unzip-dir}" /> -->
+
+                       <plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<executions combine.self="override">
+				    <execution>
+                                            <id>mkdir jboss</id>
+                                            <phase>process-resources</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+				         <configuration>
+                                         <executable>mkdir</executable>
+                                         <workingDirectory>${project.build.directory}</workingDirectory>
+                                         <arguments>
+                                           <argument>-p</argument>
+                                           <argument>jboss</argument>
+                                         </arguments>
+				         </configuration>
+                                     </execution>
+                                      <execution>
+                                        <id>tar jboss</id>
+                                            <phase>process-resources</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+				         <configuration>
+                                         <executable>tar</executable>
+                                         <workingDirectory>${project.build.directory}/jboss-eap-6.1/</workingDirectory>
+                                         <arguments>
+                                           <argument>-czvf</argument>
+                                           <argument>../jboss/jboss-eap-6.1.1.tar.gz</argument>
+                                           <argument>.</argument>
+                                         </arguments>
+				         </configuration>
+				    </execution>
+
+				</executions>
+                            </plugin>
+                       <plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>rpm-maven-plugin</artifactId>
+				<version>2.1-alpha-1</version>
+				<configuration>
+					<needarch>noarch</needarch>
+					<requires>
+					<require>shadow-utils</require>
+					<require>coreutils</require>
+					<require>jdk</require>
+					<require>initscripts</require>
+					<require>/bin/bash</require>
+					<require>/sbin/chkconfig</require>
+                                    </requires>
+                                    <description>jboss-eap 6.1.1 repackaged by Ericsson</description>
+                                        <provides>
+                                            <provide>jboss-eap = 6.1.1</provide>
+                                        </provides>
+
+                                        <defineStatements>
+					   <defineStatement>_binaries_in_noarch_packages_terminate_build 0</defineStatement>
+					   <defineStatement>version_short 6.0</defineStatement>
+					   <defineStatement>version_full 6.0</defineStatement>
+					   <defineStatement>homedir /opt/jboss-eap</defineStatement>
+					   <defineStatement>configdir /etc/jboss-eap</defineStatement>
+					   <defineStatement>appuser jboss-eap</defineStatement>
+					   <defineStatement>appgroup jboss-eap</defineStatement>
+					   <defineStatement>comment JBossEAS</defineStatement>
+					   <defineStatement>runuser %{name}</defineStatement>
+					   <defineStatement>__jar_repack %{nil}</defineStatement>
+					   <defineStatement>archive_root ""</defineStatement>
+					   <defineStatement>initrddr /opt</defineStatement>
+					</defineStatements>
+				<mappings>
+					<mapping>
+						<directory>/opt/ericsson/nms/jboss</directory>
+							<filemode>775</filemode>
+							<username>root</username>
+							<groupname>root</groupname>
+							<sources>
+								<source>
+                                                                    <location>${project.build.directory}/jboss</location>
+								</source>
+							</sources>
+					</mapping>
+				</mappings>
+			</configuration>
+			</plugin>
+
+		</plugins>
+	</build>
+
+</project>
